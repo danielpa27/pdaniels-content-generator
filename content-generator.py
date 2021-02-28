@@ -16,12 +16,15 @@ def generate(pk, sk):
         string: generated text
     """
 
-    # avoid matching words containing sk
-    sk = " " + sk + " "
-
     # get wiki page and split into list of paragraphs
     page = wiki.WikipediaPage(pk)
     paragraphs = page.content.split("\n")
+
+    if sk == '':
+        return paragraphs[0]
+
+    # avoid matching words containing sk
+    sk = " " + sk + " "
 
     # search paragraph list for pk and sk and display paragraph if found
     i = 0
