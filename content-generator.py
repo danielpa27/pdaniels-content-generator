@@ -2,6 +2,50 @@ import tkinter as tk
 import wikipedia as wiki
 import sys
 import csv
+from multiprocessing import Process
+import os
+import time
+
+
+def listen():
+
+    file_path = 'state.csv'
+    while not os.path.exists(file_path):
+        time.sleep(1)
+
+    read_state()
+
+
+def read_state():
+
+    # read input.csv
+    with open('state.csv', newline='') as input_file:
+        input_reader = csv.reader(input_file)
+        # split rows
+        rows = list(input_reader)
+        # get and split keywords
+        state = rows[1][0]
+        year = rows[1][1]
+
+        # create output.csv
+        write_state(state, year, generate(state, year))
+
+
+def write_state(pk, sk, txt):
+    """Exports generated text and keywords to output.csv
+
+    Args:
+        pk (string): primary keyword
+        sk (string): secondary keyword
+        txt (string): generated text
+    """
+
+    with open('state_content.csv', 'w', newline='') as output:
+        output_writer = csv.writer(output)
+        # header row
+        output_writer.writerow(['input_keywords', 'output_content'])
+        # content
+        output_writer.writerow([pk + ";" + sk, txt])
 
 
 def generate(pk, sk):
@@ -92,42 +136,50 @@ def cmd_input():
         export_csv(pk, sk, generate(pk, sk))
 
 
-# check for input.csv
-if len(sys.argv) > 1:
-    cmd_input()
-else:
-    # create window
-    window = tk.Tk()
-    window.title("Content Generator")
+def main():
 
-    # configure window layout
-    window.rowconfigure(0, minsize=100, weight=1)
-    window.rowconfigure(1, minsize=600, weight=1)
-    window.columnconfigure(0, minsize=700, weight=1)
+    l = Process(target=listen)
+    l.start()
+    # check for input.csv
+    if len(sys.argv) > 1:
+        cmd_input()
+    else:
+        # create window
+        window = tk.Tk()
+        window.title("Content Generator")
 
-    # create input frame and text widgets
-    txt_gen = tk.Text(window, bg="#f0f8ff")
-    fr_input = tk.Frame(window, bg="#80a3dd")
+        # configure window layout
+        window.rowconfigure(0, minsize=100, weight=1)
+        window.rowconfigure(1, minsize=600, weight=1)
+        window.columnconfigure(0, minsize=700, weight=1)
 
-    # label, entry, button widgets
-    lbl_PK = tk.Label(fr_input, text="Primary Keyword: ", bg="#80a3dd")
-    lbl_SK = tk.Label(fr_input, text="Secondary Keyword: ", bg="#80a3dd")
-    ent_PK = tk.Entry(fr_input, width=30)
-    ent_SK = tk.Entry(fr_input, width=30)
-    btn_submit = tk.Button(
-        fr_input,
-        text="Generate!",
-        command=gen_btn)
+        # create input frame and text widgets
+        txt_gen = tk.Text(window, bg="#f0f8ff")
+        fr_input = tk.Frame(window, bg="#80a3dd")
 
-    # input frame grid
-    lbl_PK.grid(row=0, column=0, sticky="w", pady=15, padx=5)
-    ent_PK.grid(row=0, column=1, sticky="w")
-    lbl_SK.grid(row=0, column=2, sticky="w", pady=15, padx=5)
-    ent_SK.grid(row=0, column=3, sticky="w")
-    btn_submit.grid(row=0, column=4, sticky="ew", padx=15)
+        # label, entry, button widgets
+        lbl_PK = tk.Label(fr_input, text="Primary Keyword: ", bg="#80a3dd")
+        lbl_SK = tk.Label(fr_input, text="Secondary Keyword: ", bg="#80a3dd")
+        ent_PK = tk.Entry(fr_input, width=30)
+        ent_SK = tk.Entry(fr_input, width=30)
+        btn_submit = tk.Button(
+            fr_input,
+            text="Generate!",
+            command=gen_btn)
 
-    # window grid
-    fr_input.grid(row=0, column=0, sticky="nsew")
-    txt_gen.grid(row=1, column=0, sticky="nsew")
+        # input frame grid
+        lbl_PK.grid(row=0, column=0, sticky="w", pady=15, padx=5)
+        ent_PK.grid(row=0, column=1, sticky="w")
+        lbl_SK.grid(row=0, column=2, sticky="w", pady=15, padx=5)
+        ent_SK.grid(row=0, column=3, sticky="w")
+        btn_submit.grid(row=0, column=4, sticky="ew", padx=15)
 
-    window.mainloop()
+        # window grid
+        fr_input.grid(row=0, column=0, sticky="nsew")
+        txt_gen.grid(row=1, column=0, sticky="nsew")
+
+        window.mainloop()
+
+
+if __name__ == '__main__':
+    main()
