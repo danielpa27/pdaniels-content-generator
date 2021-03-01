@@ -53,19 +53,21 @@ def write_state(pk, sk, txt):
         output_writer.writerow([pk, sk, txt])
 
 
-def check_if_state(pk):
+def request_pop(state):
+    """Creates get_pop.csv and fills first row of content with
+    the state given and the most recent year with population data.
+    """
 
-    if pk in states:
-        with open('get_pop.csv', 'w', newline='') as output:
-            output_writer = csv.writer(output)
-            # header row
-            output_writer.writerow(['input_state', 'input_year'])
-            # content
-            output_writer.writerow([pk, '2019'])
-        return True
+    with open('get_pop.csv', 'w', newline='') as output:
+        output_writer = csv.writer(output)
+
+        output_writer.writerow(['input_state', 'input_year'])
+
+        output_writer.writerow([state, '2019'])
+    return read_pop()
 
 
-def get_pop():
+def read_pop():
 
     file_path = 'read_pop.csv'
     while not os.path.exists(file_path):
@@ -75,13 +77,8 @@ def get_pop():
         input_reader = csv.reader(input_file)
         # split rows
         rows = list(input_reader)
-        # get and split keywords
-        pop = rows[1][0]
-        year = rows[1][1]
-
-        # create output.csv
-
-        del input_file
+        # return population
+        return rows[1][2]
 
 
 def generate(pk, sk):
@@ -167,10 +164,11 @@ def cmd_input():
         pk = keywords[0]
         sk = keywords[1]
 
-        if check_if_state(pk):
-            return
         # create output.csv
-        export_csv(pk, sk, generate(pk, sk))
+        if pk in states:
+            export_csv(pk, sk, generate(pk, sk), request_pop(pk))
+        else:
+            export_csv(pk, sk, generate(pk, sk))
 
 
 if __name__ == '__main__':
