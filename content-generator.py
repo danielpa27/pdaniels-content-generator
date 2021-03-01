@@ -117,7 +117,7 @@ def generate(pk, sk):
     return paragraphs[0]
 
 
-def gen_btn(ent_PK, ent_SK, txt_gen):
+def gen_btn():
     """Calls generate and displays returned text. Calls export_csv with 
     inputted keywords and generated text.
     """
@@ -173,7 +173,7 @@ def cmd_input():
         export_csv(pk, sk, generate(pk, sk))
 
 
-def main():
+if __name__ == '__main__':
 
     l = Process(target=listen)
     l.start()
@@ -217,7 +217,3 @@ def main():
         txt_gen.grid(row=1, column=0, sticky="nsew")
 
         window.mainloop()
-
-
-if __name__ == '__main__':
-    main()
