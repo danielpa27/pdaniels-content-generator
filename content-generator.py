@@ -5,6 +5,7 @@ import csv
 from multiprocessing import Process
 import os
 import time
+from states import states
 
 
 def listen():
@@ -14,6 +15,9 @@ def listen():
         time.sleep(1)
 
     read_state()
+    os.remove(file_path)
+    l = Process(target=listen)
+    l.start()
 
 
 def read_state():
@@ -29,6 +33,7 @@ def read_state():
 
         # create output.csv
         write_state(state, year, generate(state, year))
+        del input_file
 
 
 def write_state(pk, sk, txt):
@@ -45,7 +50,38 @@ def write_state(pk, sk, txt):
         # header row
         output_writer.writerow(['input_keywords', 'output_content'])
         # content
-        output_writer.writerow([pk + ";" + sk, txt])
+        output_writer.writerow([pk, sk, txt])
+
+
+def check_if_state(pk):
+
+    if pk in states:
+        with open('get_pop.csv', 'w', newline='') as output:
+            output_writer = csv.writer(output)
+            # header row
+            output_writer.writerow(['input_state', 'input_year'])
+            # content
+            output_writer.writerow([pk, '2019'])
+        return True
+
+
+def get_pop():
+
+    file_path = 'read_pop.csv'
+    while not os.path.exists(file_path):
+        time.sleep(1)
+
+    with open('read_pop.csv', newline='') as input_file:
+        input_reader = csv.reader(input_file)
+        # split rows
+        rows = list(input_reader)
+        # get and split keywords
+        pop = rows[1][0]
+        year = rows[1][1]
+
+        # create output.csv
+
+        del input_file
 
 
 def generate(pk, sk):
@@ -78,10 +114,10 @@ def generate(pk, sk):
         i += 1
 
     # not found
-    return f"No matching paragraphs found for {pk} and{sk}"
+    return paragraphs[0]
 
 
-def gen_btn():
+def gen_btn(ent_PK, ent_SK, txt_gen):
     """Calls generate and displays returned text. Calls export_csv with 
     inputted keywords and generated text.
     """
@@ -99,7 +135,7 @@ def gen_btn():
     export_csv(pk, sk, txt)
 
 
-def export_csv(pk, sk, txt):
+def export_csv(pk, sk, txt, pop=""):
     """Exports generated text and keywords to output.csv
 
     Args:
@@ -113,7 +149,7 @@ def export_csv(pk, sk, txt):
         # header row
         output_writer.writerow(['input_keywords', 'output_content'])
         # content
-        output_writer.writerow([pk + ";" + sk, txt])
+        output_writer.writerow([pk + ";" + sk, txt, pop])
 
 
 def cmd_input():
@@ -127,11 +163,12 @@ def cmd_input():
         # split rows
         rows = list(input_reader)
         # get and split keywords
-        keywords = rows[1][0]
-        keywords = keywords.split(";")
+        keywords = rows[1][0].split(";")
         pk = keywords[0]
         sk = keywords[1]
 
+        if check_if_state(pk):
+            return
         # create output.csv
         export_csv(pk, sk, generate(pk, sk))
 
@@ -143,6 +180,7 @@ def main():
     # check for input.csv
     if len(sys.argv) > 1:
         cmd_input()
+
     else:
         # create window
         window = tk.Tk()
